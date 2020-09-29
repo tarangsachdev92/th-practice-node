@@ -1,7 +1,5 @@
 const express = require('express');
 const router = new express.Router();
-const User = require('../models/users');
-const { generateLoginLink } = require('../emails/account');
 const userController = require('../controllers/users');
 
 router.post('/createUser', userController.createUser);
