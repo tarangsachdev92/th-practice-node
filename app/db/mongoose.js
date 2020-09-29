@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 // const User = require('../models/user');
 
-console.log(process.env.MONGODB_URL)
+// console.log(process.env.MONGODB_URL)
 mongoose.connect(process.env.MONGODB_URL, {
   useNewUrlParser: true,
   useCreateIndex: true, // this means when mongoose works with mongoDb our indexes are create allowing us

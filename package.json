@@ -6,8 +6,8 @@
   "scripts": {
     "lint:js": "eslint --quiet --ext .js --ignore-path .gitignore ./src",
     "start": "node index.js",
-    "startw": "env-cmd ./app/config/env.dev nodemon ./bin/www",
-    "dev": "env-cmd ./app/config/env.dev nodemon index.js"
+    "startw": "env-cmd .env.dev nodemon ./bin/www",
+    "dev": "env-cmd .env.dev nodemon index.js"
   },
   "keywords": [],
   "author": "",
