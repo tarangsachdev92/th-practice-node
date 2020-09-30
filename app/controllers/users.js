@@ -57,6 +57,7 @@ const userController = {
       // check if user exist or not
       const userExist = await User.findOne({ email });
       const user = new User(req.body);
+
       // if not exist we create that user
       if (!userExist) {
         await user.save();
@@ -67,7 +68,7 @@ const userController = {
       const authToken = new ObjectID().toHexString();
       const tokenCreationTime = new Date();
       const tokenExpiry = new Date();
-      tokenExpiry.setMinutes(tokenCreationTime.getMinutes() + 5);
+      tokenExpiry.setSeconds(tokenCreationTime.getSeconds() + 20);
 
       const userId = userExist ? userExist._id : user._id;
 
@@ -95,16 +96,45 @@ const userController = {
 
   authenticateUser: async (req, res) => {
     const email = req.query.email || '';
+    const authToken = req.query.authToken || '';
+
     try {
+      // console.log(new RegExp('^' + email + '$'));
+      // const user = await User.findOne({ email: new RegExp(`^${email}$`, 'i') });
+
+      // check if email id exists
       const user = await User.findOne({ email });
+      // console.log(user);
       if (!user) {
-        return res.status(404).send();
+        return res.status(404).send({ error: 'User not found' });
       }
-      res.status(200).send(user);
+
+      // check for userVerification
+      const userVerification = await UserVerification.findOne({
+        user: user._id,
+        authToken,
+      });
+
+      if (!userVerification) {
+        return res.status(404).send({ error: 'Not Found!,Please login again' });
+      }
+
+      // check for expiration
+      const currentDateTime = new Date();
+      const tokenExpireTIme = new Date(userVerification.tokenExpiry);
+
+      // delete from the user-verification table
+      await UserVerification.findByIdAndDelete({ _id: userVerification._id });
+
+      if (currentDateTime > tokenExpireTIme) {
+        throw new Error('Token Expire!, Please login and you will get email');
+      }
+      res.status(200).send({ verified: true });
     } catch (error) {
-      res.status(400).send(error);
+      console.log(error);
+      res.status(400).send({ error: error.message });
     }
-  }
+  },
 };
 
 module.exports = userController;
