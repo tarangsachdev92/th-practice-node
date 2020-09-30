@@ -1,11 +1,13 @@
 const User = require('../models/users');
+const UserVerification = require('../models/user-verification');
 const { sendWelcomeEmail, generateLoginLink } = require('../emails/account');
+const { ObjectID } = require('mongodb');
 
 const userController = {
   createUser: async (req, res) => {
     const user = new User(req.body);
     try {
-      user.save();
+      await user.save();
       sendWelcomeEmail(user.email, user.first_name);
       res.status(201).send({ user });
     } catch (error) {
@@ -16,7 +18,7 @@ const userController = {
   usersList: async (req, res) => {
     try {
       const users = await User.find({});
-    //   console.log(users);
+      //   console.log(users);
       res.status(200).send(users);
     } catch (error) {
       res.status(400).send(error);
@@ -51,8 +53,44 @@ const userController = {
 
   login: async (req, res) => {
     const email = req.body.email;
-    generateLoginLink(email);
-    res.status(200).send({ email });
+    try {
+      // check if user exist or not
+      const userExist = await User.findOne({ email });
+      const user = new User(req.body);
+      // if not exist we create that user
+      if (!userExist) {
+        await user.save();
+      }
+
+      // assign token to the user and remove entry in verification table
+
+      const authToken = new ObjectID().toHexString();
+      const tokenCreationTime = new Date();
+      const tokenExpiry = new Date();
+      tokenExpiry.setMinutes(tokenCreationTime.getMinutes() + 5);
+
+      const userId = userExist ? userExist._id : user._id;
+
+      const userVerification = new UserVerification({
+        authToken,
+        tokenExpiry,
+        tokenCreationTime,
+        user: userId,
+      });
+
+      await UserVerification.deleteMany({ user: userId });
+
+      await userVerification.save();
+
+      // send email
+      generateLoginLink(email, authToken);
+
+      // here email and authToken is send onlt for development purpose
+      res.status(200).send({ email, authToken });
+    } catch (error) {
+      console.log(error);
+      res.status(400).send(error);
+    }
   },
 
   authenticateUser: async (req, res) => {
@@ -62,12 +100,11 @@ const userController = {
       if (!user) {
         return res.status(404).send();
       }
-    //   console.log(user);
       res.status(200).send(user);
     } catch (error) {
       res.status(400).send(error);
     }
-  },
+  }
 };
 
 module.exports = userController;

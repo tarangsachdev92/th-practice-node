@@ -16,7 +16,7 @@ const sendWelcomeEmail = (email, firstName) => {
   });
 };
 
-const generateLoginLink = (email) => {
+const generateLoginLink = (email, authToken) => {
   sgMail.send({
     to: email,
     from: 'tarang.sachdev@techholding.co',
@@ -25,7 +25,8 @@ const generateLoginLink = (email) => {
       <div>
           <h1>Welcome to the app, ${email}</h1>
           <h4>here is you login link</h4>
-          <a href='taransachdev'>Link</a>
+          <a href='${authToken}'>Link</a>
+          <p>your token is ${authToken}</p>
       </div>`,
   });
 };
