@@ -68,7 +68,8 @@ const userController = {
       const authToken = new ObjectID().toHexString();
       const tokenCreationTime = new Date();
       const tokenExpiry = new Date();
-      tokenExpiry.setSeconds(tokenCreationTime.getSeconds() + 20);
+
+      tokenExpiry.setMinutes(tokenCreationTime.getMinutes() + 5);
 
       const userId = userExist ? userExist._id : user._id;
 
@@ -98,6 +99,7 @@ const userController = {
     const email = req.query.email || '';
     const authToken = req.query.authToken || '';
 
+    console.log(email);
     try {
       // console.log(new RegExp('^' + email + '$'));
       // const user = await User.findOne({ email: new RegExp(`^${email}$`, 'i') });
@@ -111,7 +113,6 @@ const userController = {
 
       // check for userVerification
       const userVerification = await UserVerification.findOne({
-        user: user._id,
         authToken,
       });
 
@@ -121,12 +122,12 @@ const userController = {
 
       // check for expiration
       const currentDateTime = new Date();
-      const tokenExpireTIme = new Date(userVerification.tokenExpiry);
 
-      // delete from the user-verification table
+      // console.log(currentDateTime > userVerification.tokenExpiry);
+
+      // Remove token to restrict logins using same token twice
       await UserVerification.findByIdAndDelete({ _id: userVerification._id });
-
-      if (currentDateTime > tokenExpireTIme) {
+      if (currentDateTime > userVerification.tokenExpiry) {
         throw new Error('Token Expire!, Please login and you will get email');
       }
       res.status(200).send({ verified: true });

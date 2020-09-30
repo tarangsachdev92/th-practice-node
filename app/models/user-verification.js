@@ -12,10 +12,10 @@ const userVerificationSchema = new mongoose.Schema({
     trim: true,
   },
   tokenCreationTime: {
-    type: String,
+    type: Date,
   },
   tokenExpiry: {
-    type: String,
+    type: Date,
   },
 });
 
