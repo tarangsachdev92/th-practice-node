@@ -4,13 +4,11 @@ const validator = require('validator');
 const userSchema = new mongoose.Schema({
   first_name: {
     type: String,
-    // required: true,
-    trim: true,
+    trim: true
   },
   last_name: {
     type: String,
-    // required: true,
-    trim: true,
+    trim: true
   },
   email: {
     type: String,
@@ -22,21 +20,12 @@ const userSchema = new mongoose.Schema({
       if (!validator.isEmail(value)) {
         throw new Error('Email is Invalid');
       }
-    },
+    }
   },
   dob: {
-    type: String,
-    // required: true,
-  },
+    type: String
+  }
 });
-
-// userSchema.methods.generateToken = async function () {
-//   const user = this;
-//   const token = new ObjectID();
-//   user.token = token
-//   await user.save();
-//   return token;
-// };
 
 const User = mongoose.model('User', userSchema);
 

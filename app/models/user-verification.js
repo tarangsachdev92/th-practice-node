@@ -4,19 +4,19 @@ const userVerificationSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    ref: 'User', // model name same in user.model
+    ref: 'User' // model name same in user.model
   },
   authToken: {
     type: String,
     required: true,
-    trim: true,
+    trim: true
   },
   tokenCreationTime: {
-    type: Date,
+    type: Date
   },
   tokenExpiry: {
-    type: Date,
-  },
+    type: Date
+  }
 });
 
 const User = mongoose.model('UserVerification', userVerificationSchema);

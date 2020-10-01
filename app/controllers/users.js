@@ -1,11 +1,16 @@
 const User = require('../models/users');
 const UserVerification = require('../models/user-verification');
 const { sendWelcomeEmail, generateLoginLink } = require('../emails/account');
-const { ObjectID } = require('mongodb');
+const mongoose = require('mongoose');
 
 const userController = {
   createUser: async (req, res) => {
+    // validate joi validator
+
+    // call service from here and just give response
+
     const user = new User(req.body);
+
     try {
       await user.save();
       sendWelcomeEmail(user.email, user.first_name);
@@ -33,13 +38,13 @@ const userController = {
     );
 
     if (!isValidOperation) {
-      return res.status(404).send({ error: 'Invalide updates' });
+      return res.status(404).send({ error: 'Invalidate updates' });
     }
     const _id = req.params.id;
     try {
       const user = await User.findByIdAndUpdate(_id, req.body, {
         new: true, // return updated value
-        runValidators: true, // do run validation on updates
+        runValidators: true // do run validation on updates
       });
       if (!user) {
         return res.status(404).send();
@@ -64,8 +69,7 @@ const userController = {
       }
 
       // assign token to the user and remove entry in verification table
-
-      const authToken = new ObjectID().toHexString();
+      const authToken = new mongoose.Types.ObjectId();
       const tokenCreationTime = new Date();
       const tokenExpiry = new Date();
 
@@ -77,7 +81,7 @@ const userController = {
         authToken,
         tokenExpiry,
         tokenCreationTime,
-        user: userId,
+        user: userId
       });
 
       await UserVerification.deleteMany({ user: userId });
@@ -87,7 +91,6 @@ const userController = {
       // send email
       generateLoginLink(email, authToken);
 
-      // here email and authToken is send onlt for development purpose
       res.status(200).send({ email, authToken });
     } catch (error) {
       console.log(error);
@@ -95,36 +98,25 @@ const userController = {
     }
   },
 
-  authenticateUser: async (req, res) => {
+  authorize: async (req, res) => {
     const email = req.query.email || '';
     const authToken = req.query.authToken || '';
 
     console.log(email);
     try {
-      // console.log(new RegExp('^' + email + '$'));
-      // const user = await User.findOne({ email: new RegExp(`^${email}$`, 'i') });
-
       // check if email id exists
+      console.log(email);
       const user = await User.findOne({ email });
-      // console.log(user);
       if (!user) {
         return res.status(404).send({ error: 'User not found' });
       }
-
       // check for userVerification
-      const userVerification = await UserVerification.findOne({
-        authToken,
-      });
-
+      const userVerification = await UserVerification.findOne({ authToken });
       if (!userVerification) {
         return res.status(404).send({ error: 'Not Found!,Please login again' });
       }
 
-      // check for expiration
       const currentDateTime = new Date();
-
-      // console.log(currentDateTime > userVerification.tokenExpiry);
-
       // Remove token to restrict logins using same token twice
       await UserVerification.findByIdAndDelete({ _id: userVerification._id });
       if (currentDateTime > userVerification.tokenExpiry) {
@@ -135,7 +127,7 @@ const userController = {
       console.log(error);
       res.status(400).send({ error: error.message });
     }
-  },
+  }
 };
 
 module.exports = userController;

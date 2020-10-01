@@ -1,5 +1,3 @@
-// https://app.sendgrid.com/settings/sender_auth/senders
-
 const sgMail = require('@sendgrid/mail');
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -7,19 +5,19 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const sendWelcomeEmail = (email, firstName) => {
   sgMail.send({
     to: email,
-    from: 'tarang.sachdev@techholding.co',
+    from: process.env.SENDER,
     subject: 'Thanks for joining in!',
     html: `
     <div>
         <h1>Welcome to the app, ${firstName}</h1>
-    </div>`,
+    </div>`
   });
 };
 
 const generateLoginLink = (email, authToken) => {
   sgMail.send({
     to: email,
-    from: 'tarang.sachdev@techholding.co',
+    from: process.env.SENDER,
     subject: 'Thanks for Login!',
     html: `
       <div>
@@ -27,11 +25,13 @@ const generateLoginLink = (email, authToken) => {
           <h4>here is you login link</h4>
           <a href='${authToken}'>Link</a>
           <p>your token is ${authToken}</p>
-      </div>`,
+      </div>`
   });
 };
 
 module.exports = {
   sendWelcomeEmail,
-  generateLoginLink,
+  generateLoginLink
 };
+
+// https://app.sendgrid.com/settings/sender_auth/senders
