@@ -7,16 +7,30 @@ const userController = {
   createUser: async (req, res) => {
     // validate joi validator
 
-    // call service from here and just give response
+    const Joi = require('joi');
+    const data = req.body;
 
-    const user = new User(req.body);
+    const schema = Joi.object({
+      email: Joi.string().email().required(),
+      first_name: Joi.string().min(1)
+        .max(30),
+      last_name: Joi.string().min(1)
+        .max(30),
+      dob: Joi.date()
+    });
 
     try {
+      const value = await schema.validateAsync(data);
+      const user = new User(value);
       await user.save();
       sendWelcomeEmail(user.email, user.first_name);
       res.status(201).send({ user });
-    } catch (error) {
-      res.status(400).send(error);
+    } catch (err) {
+      res.status(422).json({
+        status: 'error',
+        message: err.message,
+        data: err.data
+      });
     }
   },
 
