@@ -1,7 +1,8 @@
 const User = require('../models/users');
 const UserVerification = require('../models/user-verification');
-const { sendWelcomeEmail, generateLoginLink } = require('../emails/account');
+const { generateLoginLink } = require('../emails/account');
 const mongoose = require('mongoose');
+const UserCreationService = require('../services/createUserService');
 
 const userController = {
   createUser: async (req, res) => {
@@ -12,21 +13,32 @@ const userController = {
 
     const schema = Joi.object({
       email: Joi.string().email().required(),
-      first_name: Joi.string().min(1)
+      firstName: Joi.string().min(1)
         .max(30),
-      last_name: Joi.string().min(1)
+      lastName: Joi.string().min(1)
         .max(30),
       dob: Joi.date()
     });
 
+    if (!schema.validate(data)) {
+      return res.status(422).json({
+        status: 'error',
+        message: 'test'
+        // message: err.message,
+        // data: err.data
+      });
+    }
+
     try {
-      const value = await schema.validateAsync(data);
-      const user = new User(value);
-      await user.save();
-      sendWelcomeEmail(user.email, user.first_name);
-      res.status(201).send({ user });
+      // const value =
+      // const user = new User(value);
+      // await user.save();
+      // sendWelcomeEmail(user.email, user.firstName);
+      await schema.validateAsync(data);
+      const user = await UserCreationService.call(data);
+      res.status(201).send(user);
     } catch (err) {
-      res.status(422).json({
+      res.status(500).json({
         status: 'error',
         message: err.message,
         data: err.data
@@ -46,7 +58,7 @@ const userController = {
 
   updateUser: async (req, res) => {
     const updates = Object.keys(req.body);
-    const allowUpdates = ['first_name', 'last_name', 'dob', 'email'];
+    const allowUpdates = ['firstName', 'lastName', 'dob', 'email'];
     const isValidOperation = updates.every((update) =>
       allowUpdates.includes(update)
     );
